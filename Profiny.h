@@ -236,12 +236,12 @@ namespace profiny
 
 	inline void BaseObject::incrRef()
 	{
-		m_ref++;
+		++m_ref;
 	}
 
 	inline void BaseObject::decrRef()
 	{
-		m_ref--;
+		--m_ref;
 	}
 
 	inline int BaseObject::getRef() const
@@ -431,7 +431,7 @@ namespace profiny
 
 	inline bool Profiler::isInStack(const std::string& name)
 	{
-		for (unsigned int i=0; i<m_profileStack.size(); i++)
+		for (unsigned int i=0; i<m_profileStack.size(); ++i)
 		{
 			if (m_profileStack[i]->getName() == name)
 			{
@@ -446,14 +446,14 @@ namespace profiny
 	{
 #ifdef PROFINY_CALL_GRAPH_PROFILER
 		std::ostringstream oss;
-		for (int i=0; i<depth; i++)
+		for (int i=0; i<depth; ++i)
 		{
 			oss << "\t";
 		}
 #endif
 
 		std::map<std::string, boost::intrusive_ptr<Profile> >::iterator it = p->begin();
-		for (; it != p->end(); it++)
+		for (; it != p->end(); ++it)
 		{
 			unsigned int cc = it->second->getCallCount();
 			double wall, user, system;
