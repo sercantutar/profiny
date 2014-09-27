@@ -49,13 +49,18 @@
 #define PROFINY_H_
 
 
+#include <iostream>
 #include <vector>
 #include <map>
 #include <sstream>
 #include <fstream>
 
-#include <boost/timer/timer.hpp>
-#include <boost/intrusive_ptr.hpp>
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <sys/time.h>
+#endif
 
 
 #if defined(PROFINY_CALL_GRAPH_PROFILER) && defined(PROFINY_FLAT_PROFILER)
@@ -102,6 +107,33 @@
 
 namespace profiny
 {
+	class Timer
+	{
+	public:
+		Timer();
+
+		void start();
+
+		void stop();
+
+		double getElapsedTime();
+
+	private:
+		double m_startTime;
+
+		double m_stopTime;
+
+		bool m_running;
+
+#ifdef _WIN32
+		double m_reciprocalFrequency;
+#endif
+
+		double getTime();
+	};
+
+	/**********************************************************************/
+
 	class BaseObject
 	{
 	public:
@@ -139,12 +171,12 @@ namespace profiny
 
 		std::string getName() const;
 
-		void getTimes(double& wall, double& user, double& system) const;
+		void getTimes(double& wall) const;
 
 #ifdef PROFINY_CALL_GRAPH_PROFILER
-		std::map<std::string, boost::intrusive_ptr<Profile> >& getSubProfiles();
+		std::map<std::string, Profile*>& getSubProfiles();
 
-		std::map<std::string, boost::intrusive_ptr<Profile> > m_subProfiles;
+		std::map<std::string, Profile*> m_subProfiles;
 #else
 		bool m_timeStarted;
 #endif
@@ -154,10 +186,8 @@ namespace profiny
 		unsigned int m_callCount;
 
 		double m_wallTime;
-		double m_userTime;
-		double m_systemTime;
 
-		boost::timer::cpu_timer m_timer;
+		Timer m_timer;
 	};
 
 	/**********************************************************************/
@@ -170,7 +200,7 @@ namespace profiny
 		~ScopedProfile();
 
 	private:
-		boost::intrusive_ptr<Profile> m_profile;
+		Profile* m_profile;
 	};
 
 	/**********************************************************************/
@@ -194,33 +224,80 @@ namespace profiny
 
 		~Profiler();
 
-		static boost::intrusive_ptr<Profiler> getInstance();
+		static Profiler* getInstance();
 
-		boost::intrusive_ptr<Profile> getProfile(const std::string& name);
+		Profile* getProfile(const std::string& name);
 
 		static void printStats();
 
-		static void printStats(std::ofstream& fs, std::map<std::string, boost::intrusive_ptr<Profile> >* p, int depth);
+		static void printStats(std::ofstream& fs, std::map<std::string, Profile*>* p, int depth);
 
 #ifdef PROFINY_CALL_GRAPH_PROFILER
-		std::map<std::string, boost::intrusive_ptr<Profile> >& getCurrentProfilesRoot();
+		std::map<std::string, Profile*>& getCurrentProfilesRoot();
 
-		void pushProfile(boost::intrusive_ptr<Profile> p);
+		void pushProfile(Profile* p);
 
 		void popProfile();
 
 		bool isInStack(const std::string& name);
 #endif
 
-		std::map<std::string, boost::intrusive_ptr<Profile> > m_profiles;
+		std::map<std::string, Profile*> m_profiles;
 
-		static boost::intrusive_ptr<Profiler> m_instance;
+		static Profiler* m_instance;
 
 #ifdef PROFINY_CALL_GRAPH_PROFILER
-		std::vector<boost::intrusive_ptr<Profile> > m_profileStack;
+		std::vector<Profile*> m_profileStack;
 
 		bool m_omitRecursiveCalls;
 #endif
+	};
+
+	/**********************************************************************/
+
+	Timer::Timer()
+		: m_startTime(0.0f), m_stopTime(0.0f), m_running(false)
+	{
+#ifdef _WIN32
+		LARGE_INTEGER freq;
+		QueryPerformanceFrequency(&freq);
+		m_reciprocalFrequency = 1.0f / freq.QuadPart;
+#endif
+	}
+
+	void Timer::start()
+	{
+		m_running = true;
+		m_startTime = getTime();
+	}
+
+	void Timer::stop()
+	{
+		m_running = false;
+		m_stopTime = getTime() - m_startTime;
+	}
+
+	double Timer::getElapsedTime()
+	{
+		if (m_running)
+			return getTime() - m_startTime;
+
+		return m_stopTime;
+	}
+
+	double Timer::getTime()
+	{
+#ifdef _WIN32
+		LARGE_INTEGER count;
+		QueryPerformanceCounter(&count);
+		double time = count.QuadPart * m_reciprocalFrequency;
+#else
+		struct timeval interval;
+		clock_gettime(CLOCK_MONOTONIC, &interval);
+		double time = interval.tv_sec + interval.tv_usec * 0.000001f;
+#endif
+
+		return time;
 	};
 
 	/**********************************************************************/
@@ -255,7 +332,7 @@ namespace profiny
 #ifndef PROFINY_CALL_GRAPH_PROFILER
 			m_timeStarted(false),
 #endif
-			m_name(name), m_callCount(0), m_wallTime(0.0), m_userTime(0.0), m_systemTime(0.0)
+			m_name(name), m_callCount(0), m_wallTime(0.0)
 	{
 	}
 
@@ -290,10 +367,7 @@ namespace profiny
 		m_timeStarted = false;
 #endif
 		m_timer.stop(); // TODO: check if we need this line
-		boost::timer::cpu_times t = m_timer.elapsed();
-		m_wallTime += NANOSEC_TO_SEC(t.wall);
-		m_userTime += NANOSEC_TO_SEC(t.user);
-		m_systemTime += NANOSEC_TO_SEC(t.system);
+		m_wallTime += m_timer.getElapsedTime();
 		++m_callCount;
 		return true;
 	}
@@ -308,15 +382,13 @@ namespace profiny
 		return m_name;
 	}
 
-	inline void Profile::getTimes(double& wall, double& user, double& system) const
+	inline void Profile::getTimes(double& wall) const
 	{
 		wall = m_wallTime;
-		user = m_userTime;
-		system = m_systemTime;
 	}
 
 #ifdef PROFINY_CALL_GRAPH_PROFILER
-	inline std::map<std::string, boost::intrusive_ptr<Profile> >& Profile::getSubProfiles()
+	inline std::map<std::string, Profile*>& Profile::getSubProfiles()
 	{
 		return m_subProfiles;
 	}
@@ -324,7 +396,7 @@ namespace profiny
 
 	/**********************************************************************/
 
-	inline ScopedProfile::ScopedProfile(const std::string& name)
+	inline ScopedProfile::ScopedProfile(const std::string& name) : m_profile(NULL)
 	{
 		std::string n(name);
 
@@ -333,7 +405,6 @@ namespace profiny
 		{ // profile is already in stack (probably a recursive call)
 			if (Profiler::getInstance()->getOmitRecursiveCalls())
 			{
-				m_profile = NULL;
 				return;
 			}
 			else
@@ -348,6 +419,7 @@ namespace profiny
 		{
 			if (!m_profile->start())
 			{ // cannot start profiler (probably a recursive call for flat profiler)
+				delete m_profile;
 				m_profile = NULL;
 			}
 		}
@@ -367,7 +439,7 @@ namespace profiny
 
 	/**********************************************************************/
 
-	boost::intrusive_ptr<Profiler> Profiler::m_instance = NULL;
+	Profiler* Profiler::m_instance = NULL;
 
 	inline Profiler::Profiler()
 #ifdef PROFINY_CALL_GRAPH_PROFILER
@@ -380,7 +452,7 @@ namespace profiny
 	{
 	}
 
-	inline boost::intrusive_ptr<Profiler> Profiler::getInstance()
+	inline Profiler* Profiler::getInstance()
 	{
 		if (m_instance == NULL)
 		{
@@ -390,33 +462,33 @@ namespace profiny
 		return m_instance;
 	}
 
-	inline boost::intrusive_ptr<Profile> Profiler::getProfile(const std::string& name)
+	inline Profile* Profiler::getProfile(const std::string& name)
 	{
 #ifdef PROFINY_CALL_GRAPH_PROFILER
-		std::map<std::string, boost::intrusive_ptr<Profile> >& profiles = getCurrentProfilesRoot();
+		std::map<std::string, Profile*>& profiles = getCurrentProfilesRoot();
 #else
-		std::map<std::string, boost::intrusive_ptr<Profile> >& profiles = m_profiles;
+		std::map<std::string, Profile*>& profiles = m_profiles;
 #endif
-		std::map<std::string, boost::intrusive_ptr<Profile> >::iterator it = profiles.find(name);
+		std::map<std::string, Profile*>::iterator it = profiles.find(name);
 		if (it != profiles.end())
 		{
 			return it->second;
 		}
 		else
 		{
-			boost::intrusive_ptr<Profile> result = new Profile(name);
+			Profile* result = new Profile(name);
 			profiles[name] = result;
 			return result;
 		}
 	}
 
 #ifdef PROFINY_CALL_GRAPH_PROFILER
-	inline std::map<std::string, boost::intrusive_ptr<Profile> >& Profiler::getCurrentProfilesRoot()
+	inline std::map<std::string, Profile*>& Profiler::getCurrentProfilesRoot()
 	{
 		return m_profileStack.empty() ? m_profiles : m_profileStack.back()->getSubProfiles();
 	}
 
-	inline void Profiler::pushProfile(boost::intrusive_ptr<Profile> p)
+	inline void Profiler::pushProfile(Profile* p)
 	{
 		m_profileStack.push_back(p);
 	}
@@ -442,7 +514,7 @@ namespace profiny
 	}
 #endif
 
-	inline void Profiler::printStats(std::ofstream& fs, std::map<std::string, boost::intrusive_ptr<Profile> >* p, int depth)
+	inline void Profiler::printStats(std::ofstream& fs, std::map<std::string, Profile*>* p, int depth)
 	{
 #ifdef PROFINY_CALL_GRAPH_PROFILER
 		std::ostringstream oss;
@@ -452,24 +524,28 @@ namespace profiny
 		}
 #endif
 
-		std::map<std::string, boost::intrusive_ptr<Profile> >::iterator it = p->begin();
+		std::map<std::string, Profile*>::iterator it = p->begin();
 		for (; it != p->end(); ++it)
 		{
 			unsigned int cc = it->second->getCallCount();
-			double wall, user, system;
-			it->second->getTimes(wall, user, system);
+			double wall;
+			it->second->getTimes(wall);
 #ifdef PROFINY_CALL_GRAPH_PROFILER
-			fs << oss.str() << it->second->getName() << "  T:" << wall << "  #:" << cc << "  %:" << 100 * ((user+system) / wall) << std::endl;
+			fs << oss.str() << it->second->getName() << "  T:" << wall << "  #:" << cc << std::endl;
 			printStats(fs, &(it->second->getSubProfiles()), depth+1);
 #else
-			fs << it->second->getName() << "  T:" << wall << "  #:" << cc << "  %:" << 100 * ((user+system) / wall) << std::endl;
+			fs << it->second->getName() << "  T:" << wall << "  #:" << cc << std::endl;
 #endif
+			delete it->second;
 		}
 	}
 
 	inline void Profiler::printStats()
 	{
 		printStats("profiny.out");
+
+		delete m_instance;
+		m_instance = NULL;
 	}
 
 	inline void Profiler::printStats(const std::string& filename)
