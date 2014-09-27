@@ -3,7 +3,7 @@
 
 == Dependencies ==
 
-In order to use Profiny, you should install these libraries:
+Starting with v0.2, Profiny does not require any external library other than STL. For older versions of Profiny, you should install these libraries:
 
 	boost version 1.52 (or newer)
 
