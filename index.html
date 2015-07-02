@@ -85,12 +85,9 @@
 
 <p>While compiling the code, the user should select which profiling strategy to use by using -D argument of the compiler. Either PROFINY_CALL_GRAPH_PROFILER or PROFINY_FLAT_PROFILER should be defined, and Profiny will act according to these definitions as follows:</p>
 
-<ol>
-<li>if only PROFINY_CALL_GRAPH_PROFILER is defined, it will work as a call-graph profiler</li>
-</ol>
-
 <blockquote>
 <ol>
+<li><p>if only PROFINY_CALL_GRAPH_PROFILER is defined, it will work as a call-graph profiler</p></li>
 <li><p>if only PROFINY_FLAT_PROFILER is defined, it will work as a flat profiler</p></li>
 <li><p>if neither of them is defined, Profiny macros will be set to blank (i.e. profiling will be off)</p></li>
 <li><p>if both of them are defined, it will give an error and won't compile</p></li>
@@ -102,7 +99,6 @@
 <pre><code>    g++ -DPROFINY_CALL_GRAPH_PROFILER -lboost_timer -lboost_chrono -lboost_system -o "profiny_call_graph_test" "../main.cpp"
 </code></pre>
 
-<blockquote>
 <p>or</p>
 
 <pre><code>    g++ -DPROFINY_FLAT_PROFILER -lboost_timer -lboost_chrono -lboost_system -o "profiny_flat_test" "../main.cpp"
@@ -112,7 +108,6 @@
 
 <pre><code>    g++ -lboost_timer -lboost_chrono -lboost_system -o "profiny_not_profiled_test" "../main.cpp"
 </code></pre>
-</blockquote>
 
 <hr>
 
@@ -126,7 +121,6 @@
 
 <p>The results of the above example will be as follows:</p>
 
-<blockquote>
 <p>If flat profiling requested:</p>
 
 <pre><code>        ../main.cpp:f:8  T:2.58832  #:1  %:99.2922
@@ -146,7 +140,6 @@
 </code></pre>
 
 <p>In the above results, each line represents a profile. Second column in each line shows total time, third one shows total number of executions for that scope, and the last column shows the CPU usage. As shown in the examples, CPU usage may be invalid if we have a really fast function (i.e. user and system times cannot be evaluated that precisely).</p>
-</blockquote>
 
 <p>In call-graph profiling, the indentation shows the call graph. So, the same scope can be shown by multiple entries (i.e. if function "f" is called from "g" and "h", both calls will be shown separately). Note that this is not the complete call graph, instead, it is a call graph of scopes that we registered to Profiny.</p>
 
@@ -176,7 +169,6 @@
 <pre><code>            PROFINY_SCOPE_WITH_ID(m_name)
 </code></pre>
 
-<blockquote>
 <p>to the beginning of each function, and profile methods of the instances (not the class' method). The name of each profile will be:</p>
 
 <pre><code>            &lt;file&gt;:&lt;func&gt;:&lt;line&gt;:&lt;ID&gt;
@@ -218,7 +210,6 @@ as follows (including recursive calls):</p>
 </code></pre>
 
 <p>Happy profiling!</p>
-</blockquote>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/sercantutar/profiny">Profiny</a> is maintained by <a href="https://github.com/sercantutar">sercantutar</a>.</span>
