@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Profiny : Lightweight C++ Profiler">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Profiny</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/sercantutar/profiny">View on GitHub</a>
+
+          <h1 id="project_title">Profiny</h1>
+          <h2 id="project_tagline">Lightweight C++ Profiler</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/sercantutar/profiny/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/sercantutar/profiny/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h2>
+<a id="dependencies" class="anchor" href="#dependencies" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dependencies</h2>
+
+<p>Starting with v0.2, Profiny does not require any external library other than STL. For older versions of Profiny, you should install these libraries:</p>
+
+<blockquote>
+<p>boost version 1.52 (or newer)</p>
+</blockquote>
+
+<hr>
+
+<h2>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<p>A sample code using Profiny can be written as follows:</p>
+
+<pre><code>    #include "Profiny.h"
+
+    int f(int n) {
+        PROFINY_SCOPE
+        int result = 1;
+        for (int i=1; i&lt;n; i++) result *= i;
+        return result;
+    }
+
+    int g(int n) {
+        PROFINY_SCOPE
+        if (n &lt; 2) return 1;
+        return g(n-1) * n;
+    }
+
+    int h2(int n);
+
+    int h1(int n) {
+        PROFINY_SCOPE
+        if (n &lt; 2) return 1;
+        return h2(n-1) * n;
+    }
+
+    int h2(int n) {
+        PROFINY_SCOPE
+        if (n &lt; 2)
+            return 1;
+        return h1(n-1) * n;
+    }
+
+    int main() {
+        PROFINY_SCOPE
+        f(1000000000);
+        g(9);
+        h1(9);
+        return 0;
+    }
+</code></pre>
+
+<p>As you see in the example, every function block starts with PROFINY_SCOPE. This is a Profiny macro, which means that, these blocks are registered to be profiled by Profiny. Any scope can be registered to Profiny (does not have to be function block). Also, you can profile starting from one point (not the beginning) of the scope till the end of it. Each scope can have at most one Profiny macro, otherwise the code won't compile.</p>
+
+<hr>
+
+<h2>
+<a id="compile" class="anchor" href="#compile" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compile</h2>
+
+<p>While compiling the code, the user should select which profiling strategy to use by using -D argument of the compiler. Either PROFINY_CALL_GRAPH_PROFILER or PROFINY_FLAT_PROFILER should be defined, and Profiny will act according to these definitions as follows:</p>
+
+<ol>
+<li>if only PROFINY_CALL_GRAPH_PROFILER is defined, it will work as a call-graph profiler</li>
+</ol>
+
+<blockquote>
+<ol>
+<li><p>if only PROFINY_FLAT_PROFILER is defined, it will work as a flat profiler</p></li>
+<li><p>if neither of them is defined, Profiny macros will be set to blank (i.e. profiling will be off)</p></li>
+<li><p>if both of them are defined, it will give an error and won't compile</p></li>
+</ol>
+</blockquote>
+
+<p>So the above code (main.cpp) can be compiled by either</p>
+
+<pre><code>    g++ -DPROFINY_CALL_GRAPH_PROFILER -lboost_timer -lboost_chrono -lboost_system -o "profiny_call_graph_test" "../main.cpp"
+</code></pre>
+
+<blockquote>
+<p>or</p>
+
+<pre><code>    g++ -DPROFINY_FLAT_PROFILER -lboost_timer -lboost_chrono -lboost_system -o "profiny_flat_test" "../main.cpp"
+</code></pre>
+
+<p>or, if you want to switch profiling off</p>
+
+<pre><code>    g++ -lboost_timer -lboost_chrono -lboost_system -o "profiny_not_profiled_test" "../main.cpp"
+</code></pre>
+</blockquote>
+
+<hr>
+
+<h2>
+<a id="output" class="anchor" href="#output" aria-hidden="true"><span class="octicon octicon-link"></span></a>Output</h2>
+
+<p>By default (if the profiling is not off), and if your program exits normally, Profiny will print profiling results in "profinity.out" file. Also, the user can force printing results at any time by calling:</p>
+
+<pre><code>    profiny::Profiler::printStats("filename")
+</code></pre>
+
+<p>The results of the above example will be as follows:</p>
+
+<blockquote>
+<p>If flat profiling requested:</p>
+
+<pre><code>        ../main.cpp:f:8  T:2.58832  #:1  %:99.2922
+        ../main.cpp:g:19  T:0.0172229  #:1  %:174.186
+        ../main.cpp:h1:29  T:0.0164029  #:1  %:60.9647
+        ../main.cpp:h2:37  T:0.0163981  #:1  %:60.9828
+        ../main.cpp:main:45  T:2.62199  #:1  %:99.5425
+</code></pre>
+
+<p>If call-graph profiling requested:</p>
+
+<pre><code>        ../main.cpp:main:45  T:2.62712  #:1  %:99.7289
+          ../main.cpp:f:8  T:2.59415  #:1  %:99.4546
+          ../main.cpp:g:19  T:0.0164109  #:1  %:182.805
+          ../main.cpp:h1:29  T:0.0165158  #:1  %:60.5482
+            ../main.cpp:h2:37  T:0.0165097  #:1  %:60.5705
+</code></pre>
+
+<p>In the above results, each line represents a profile. Second column in each line shows total time, third one shows total number of executions for that scope, and the last column shows the CPU usage. As shown in the examples, CPU usage may be invalid if we have a really fast function (i.e. user and system times cannot be evaluated that precisely).</p>
+</blockquote>
+
+<p>In call-graph profiling, the indentation shows the call graph. So, the same scope can be shown by multiple entries (i.e. if function "f" is called from "g" and "h", both calls will be shown separately). Note that this is not the complete call graph, instead, it is a call graph of scopes that we registered to Profiny.</p>
+
+<hr>
+
+<h2>
+<a id="advanced" class="anchor" href="#advanced" aria-hidden="true"><span class="octicon octicon-link"></span></a>Advanced</h2>
+
+<p>In the profiling results, first column represents the name of the profiled scope. In this example we used PROFINY_SCOPE that's why the name simply is</p>
+
+<pre><code>    &lt;file&gt;:&lt;func&gt;:&lt;line&gt;
+</code></pre>
+
+<p>It is also possible to use these macros:</p>
+
+<ul>
+<li>PROFINY_SCOPE: This is the simplest macro. The profile name for this macro is as follows:</li>
+</ul>
+
+<pre><code>            &lt;file&gt;:&lt;func&gt;:&lt;line&gt;
+</code></pre>
+
+<ul>
+<li>PROFINY_SCOPE_WITH_ID(ID): This macro can be used where we want to differentiate profiles of a single scope by giving an ID to each. For example, we can use this macro if we want to profile every instance of a class separately. If we have a unique "m_name" member in the class, we can simply write:</li>
+</ul>
+
+<pre><code>            PROFINY_SCOPE_WITH_ID(m_name)
+</code></pre>
+
+<blockquote>
+<p>to the beginning of each function, and profile methods of the instances (not the class' method). The name of each profile will be:</p>
+
+<pre><code>            &lt;file&gt;:&lt;func&gt;:&lt;line&gt;:&lt;ID&gt;
+</code></pre>
+
+<ul>
+<li>PROFINY_NAMED_SCOPE(NAME): This macro does not automatically generate profile name, instead, it takes it from the user. So, the profile name is as follows:</li>
+</ul>
+
+<pre><code>            &lt;NAME&gt;
+</code></pre>
+
+<ul>
+<li>PROFINY_NAMED_SCOPE_WITH_ID(NAME, ID): This macro uses name and ID given as arguments and constructs profile name as follows:</li>
+</ul>
+
+<pre><code>            &lt;NAME&gt;:&lt;ID&gt;
+</code></pre>
+
+<p>Later, if you chose PROFINY_CALL_GRAPH_PROFILER, you may want to determine whether recursive calls will be omitted or not (omitted by default) by calling:</p>
+
+<pre><code>    profiny::Profiler::setOmitRecursiveCalls(bool)
+</code></pre>
+
+<p>If call-graph profiling requested and recursive calls are not omitted the results will be
+as follows (including recursive calls):</p>
+
+<pre><code>    ../main.cpp:main:45  T:2.58801  #:1  %:99.3041
+      ../main.cpp:f:8  T:2.58789  #:1  %:99.3086
+      ../main.cpp:g:19  T:4.4433e-05  #:1  %:0
+        RECURSIVE@../main.cpp:g:19  T:2.9165e-05  #:1  %:0
+          RECURSIVE@../main.cpp:g:19  T:2.5138e-05  #:1  %:0
+      ../main.cpp:h1:29  T:3.0788e-05  #:1  %:0
+        ../main.cpp:h2:37  T:2.7134e-05  #:1  %:0
+          RECURSIVE@../main.cpp:h1:29  T:2.3411e-05  #:1  %:0
+            RECURSIVE@../main.cpp:h2:37  T:1.9694e-05  #:1  %:0
+              RECURSIVE@../main.cpp:h1:29  T:1.6154e-05  #:1  %:0
+                RECURSIVE@../main.cpp:h2:37  T:1.2546e-05  #:1  %:0
+</code></pre>
+
+<p>Happy profiling!</p>
+</blockquote>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Profiny maintained by <a href="https://github.com/sercantutar">sercantutar</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
