@@ -102,19 +102,11 @@ column shows the average execution time.
 
 If call-graph profiling is requested, the result will be similar to the following:
 
-main:53  T(s):2.50836  #:1  A(ms):2508.36
-	f:8  T(s):2.50827  #:2  A(ms):1254.14
-	g:23  T(s):2.7195e-05  #:1  A(ms):0.027195
-		RECURSIVE@g:23  T(s):1.731e-05  #:1  A(ms):0.01731
-			RECURSIVE@g:23  T(s):1.5474e-05  #:1  A(ms):0.015474
-				...
-					RECURSIVE@g:23  T(s):9.20008e-08  #:1  A(ms):9.20008e-05
-	h1:37  T(s):1.2069e-05  #:1  A(ms):0.012069
-		h2:45  T(s):1.0705e-05  #:1  A(ms):0.010705
-			RECURSIVE@h1:37  T(s):9.388e-06  #:1  A(ms):0.009388
-				RECURSIVE@h2:45  T(s):8.13e-06  #:1  A(ms):0.00813
-					...
-						RECURSIVE@h1:37  T(s):1.04e-07  #:1  A(ms):0.000104
+	main:55  T(s):2.48593  #:1  A(ms):2485.93
+	  f:8  T(s):2.48585  #:2  A(ms):1242.93
+	  g:23  T(s):1.2713e-05  #:1  A(ms):0.012713
+	  h1:37  T(s):7.098e-06  #:1  A(ms):0.007098
+	    h2:45  T(s):4.26e-06  #:1  A(ms):0.00426
 
 In this mode, the indentation shows the call graph. So, the same scope can be
 shown by multiple entries (i.e. if function "f" is called from "g" and "h", both calls
@@ -158,17 +150,18 @@ recursive calls will be omitted or not (omitted by default) by calling macro:
 If call-graph profiling requested and recursive calls are not omitted the results will be
 as follows (including recursive calls):
 
-	../main.cpp:main:45  T:2.58801  #:1  %:99.3041
-	  ../main.cpp:f:8  T:2.58789  #:1  %:99.3086
-	  ../main.cpp:g:19  T:4.4433e-05  #:1  %:0
-	    RECURSIVE@../main.cpp:g:19  T:2.9165e-05  #:1  %:0
-	      RECURSIVE@../main.cpp:g:19  T:2.5138e-05  #:1  %:0
-	  ../main.cpp:h1:29  T:3.0788e-05  #:1  %:0
-	    ../main.cpp:h2:37  T:2.7134e-05  #:1  %:0
-	      RECURSIVE@../main.cpp:h1:29  T:2.3411e-05  #:1  %:0
-	        RECURSIVE@../main.cpp:h2:37  T:1.9694e-05  #:1  %:0
-	          RECURSIVE@../main.cpp:h1:29  T:1.6154e-05  #:1  %:0
-	            RECURSIVE@../main.cpp:h2:37  T:1.2546e-05  #:1  %:0
+	main:53  T(s):2.49905  #:1  A(ms):2499.05
+	  f:8  T(s):2.49897  #:2  A(ms):1249.48
+	  g:23  T(s):1.517e-05  #:1  A(ms):0.01517
+	    RECURSIVE@g:23  T(s):5.499e-06  #:1  A(ms):0.005499
+	      RECURSIVE@g:23  T(s):3.598e-06  #:1  A(ms):0.003598
+	        RECURSIVE@g:23  T(s):1.77e-06  #:1  A(ms):0.00177
+	          RECURSIVE@g:23  T(s):1.03002e-07  #:1  A(ms):0.000103002
+	  h1:37  T(s):1.3544e-05  #:1  A(ms):0.013544
+	    h2:45  T(s):1.2055e-05  #:1  A(ms):0.012055
+	      RECURSIVE@h1:37  T(s):1.0592e-05  #:1  A(ms):0.010592
+	        RECURSIVE@h2:45  T(s):1.816e-06  #:1  A(ms):0.001816
+	          RECURSIVE@h1:37  T(s):7.6001e-08  #:1  A(ms):7.6001e-05
 
 Happy profiling!
 

@@ -48,8 +48,6 @@ int h2(int n)
 	return h1(n-1) * n;
 }
 
-extern void foo();
-
 int main()
 {
 	PROFINY_SCOPE
@@ -59,9 +57,8 @@ int main()
 	f(1000000000);
 	f(100);
 
-	g(9);
-	h1(9);
+	g(5);
+	h1(5);
 
-	foo();
 	return 0;
 }
