@@ -351,7 +351,7 @@ namespace profiny
 
 	/**********************************************************************/
 
-	inline ScopedProfile::ScopedProfile(const std::string& name) : m_profile(NULL)
+	inline ScopedProfile::ScopedProfile(const std::string& name) : m_profile(nullptr)
 	{
 		std::string n(name);
 
@@ -370,11 +370,11 @@ namespace profiny
 #endif
 
 		m_profile = Profiler::getInstance()->getProfile(n);
-		if (m_profile != NULL)
+		if (m_profile != nullptr)
 		{
 			if (!m_profile->start())
 			{ // cannot start profiler (probably a recursive call for flat profiler)
-				m_profile = NULL;
+				m_profile = nullptr;
 			}
 		}
 		else
@@ -385,7 +385,7 @@ namespace profiny
 
 	inline ScopedProfile::~ScopedProfile()
 	{
-		if (m_profile != NULL)
+		if (m_profile != nullptr)
 		{
 			m_profile->stop();
 		}
@@ -414,11 +414,11 @@ namespace profiny
 	inline Profile* Profiler::getProfile(const std::string& name)
 	{
 #ifdef PROFINY_CALL_GRAPH_PROFILER
-		std::map<std::string, Profile*>& profiles = getCurrentProfilesRoot();
+		auto& profiles = getCurrentProfilesRoot();
 #else
-		std::map<std::string, Profile*>& profiles = m_profiles;
+		auto& profiles = m_profiles;
 #endif
-		std::map<std::string, Profile*>::iterator it = profiles.find(name);
+		auto it = profiles.find(name);
 		if (it != profiles.end())
 		{
 			return it->second;
