@@ -246,8 +246,6 @@ namespace profiny
 
 		std::map<std::string, Profile*> m_profiles;
 
-		static Profiler* m_instance;
-
 #ifdef PROFINY_CALL_GRAPH_PROFILER
 		std::vector<Profile*> m_profileStack;
 
@@ -440,8 +438,6 @@ namespace profiny
 
 	/**********************************************************************/
 
-	Profiler* Profiler::m_instance = NULL;
-
 	inline Profiler::Profiler()
 #ifdef PROFINY_CALL_GRAPH_PROFILER
 		: m_omitRecursiveCalls(true)
@@ -451,16 +447,13 @@ namespace profiny
 
 	inline Profiler::~Profiler()
 	{
+		printStats();
 	}
 
 	inline Profiler* Profiler::getInstance()
 	{
-		if (m_instance == NULL)
-		{
-			m_instance = new Profiler;
-			atexit(printStats);
-		}
-		return m_instance;
+		static Profiler profiler;
+		return &profiler;
 	}
 
 	inline Profile* Profiler::getProfile(const std::string& name)
@@ -543,9 +536,6 @@ namespace profiny
 	inline void Profiler::printStats()
 	{
 		printStats("profiny.out");
-
-		delete m_instance;
-		m_instance = NULL;
 	}
 
 	inline void Profiler::printStats(const std::string& filename)
