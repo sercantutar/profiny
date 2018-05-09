@@ -1,6 +1,3 @@
-#define PROFINY_CALL_GRAPH_PROFILER
-//#define PROFINY_FLAT_PROFILER
-
 #include "Profiny.h"
 
 int f(int n)
