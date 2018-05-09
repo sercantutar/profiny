@@ -87,28 +87,36 @@ results at any time by calling:
 
 	profiny::Profiler::printStats("filename")
 
-The results of the above example will be as follows:
+If flat profiling is requested, the results of the above example will be similar to
+the following:
 
-	If flat profiling requested:
-		../main.cpp:f:8  T:2.58832  #:1  %:99.2922
-		../main.cpp:g:19  T:0.0172229  #:1  %:174.186
-		../main.cpp:h1:29  T:0.0164029  #:1  %:60.9647
-		../main.cpp:h2:37  T:0.0163981  #:1  %:60.9828
-		../main.cpp:main:45  T:2.62199  #:1  %:99.5425
-
-	If call-graph profiling requested:
-		../main.cpp:main:45  T:2.62712  #:1  %:99.7289
-		  ../main.cpp:f:8  T:2.59415  #:1  %:99.4546
-		  ../main.cpp:g:19  T:0.0164109  #:1  %:182.805
-		  ../main.cpp:h1:29  T:0.0165158  #:1  %:60.5482
-		    ../main.cpp:h2:37  T:0.0165097  #:1  %:60.5705
+	f:8  T(s):2.51544  #:1  A(ms):2515.44
+	g:23  T(s):1.032e-05  #:1  A(ms):0.01032
+	h1:37  T(s):6.666e-06  #:1  A(ms):0.006666
+	h2:45  T(s):4.891e-06  #:1  A(ms):0.004891
+	main:53  T(s):2.5155  #:1  A(ms):2515.5
 
 In the above results, each line represents a profile. Second column in each line shows
 total time, third one shows total number of executions for that scope, and the last
-column shows the CPU usage. As shown in the examples, CPU usage may be invalid if we have
-a really fast function (i.e. user and system times cannot be evaluated that precisely).
+column shows the average execution time.
 
-In call-graph profiling, the indentation shows the call graph. So, the same scope can be
+If call-graph profiling is requested, the result will be similar to the following:
+
+main:53  T(s):2.47692  #:1  A(ms):2476.92
+	f:8  T(s):2.47683  #:1  A(ms):2476.83
+	g:23  T(s):2.7195e-05  #:1  A(ms):0.027195
+		RECURSIVE@g:23  T(s):1.731e-05  #:1  A(ms):0.01731
+			RECURSIVE@g:23  T(s):1.5474e-05  #:1  A(ms):0.015474
+				...
+					RECURSIVE@g:23  T(s):9.20008e-08  #:1  A(ms):9.20008e-05
+	h1:37  T(s):1.2069e-05  #:1  A(ms):0.012069
+		h2:45  T(s):1.0705e-05  #:1  A(ms):0.010705
+			RECURSIVE@h1:37  T(s):9.388e-06  #:1  A(ms):0.009388
+				RECURSIVE@h2:45  T(s):8.13e-06  #:1  A(ms):0.00813
+					...
+						RECURSIVE@h1:37  T(s):1.04e-07  #:1  A(ms):0.000104
+
+In this mode, the indentation shows the call graph. So, the same scope can be
 shown by multiple entries (i.e. if function "f" is called from "g" and "h", both calls
 will be shown separately). Note that this is not the complete call graph, instead, it is
 a call graph of scopes that we registered to Profiny.
