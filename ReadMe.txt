@@ -4,9 +4,7 @@
 *****************************************************************************************
 
 Profiny is a profiling helper tool which consists of just one header file. In order to
-use Profiny, you should install these libraries:
-
-	boost version 1.52 (or newer)
+use Profiny, you should have a compiler supporting c++11.
 
 A sample code using Profiny can be written as follows:
 
@@ -70,15 +68,15 @@ should be defined, and Profiny will act according to these definitions as follow
 
 So the above code (main.cpp) can be compiled by either
 
-	g++ -DPROFINY_CALL_GRAPH_PROFILER -lboost_timer -lboost_chrono -lboost_system -o "profiny_call_graph_test" "../main.cpp"
+	g++ -DPROFINY_CALL_GRAPH_PROFILER --std=c++11 -o "profiny_call_graph_test" "../main.cpp"
 
 		or
 
-	g++ -DPROFINY_FLAT_PROFILER -lboost_timer -lboost_chrono -lboost_system -o "profiny_flat_test" "../main.cpp"
+	g++ -DPROFINY_FLAT_PROFILER --std=c++11 -o "profiny_flat_test" "../main.cpp"
 
 		or, if you want to switch profiling off
 
-	g++ -lboost_timer -lboost_chrono -lboost_system -o "profiny_not_profiled_test" "../main.cpp"
+	g++ --std=c++11 -o "profiny_not_profiled_test" "../main.cpp"
 
 
 **************************************** OUTPUT ****************************************
