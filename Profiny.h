@@ -136,26 +136,7 @@ namespace profiny
 
 	/**********************************************************************/
 
-	class BaseObject
-	{
-	public:
-		BaseObject();
-
-		virtual ~BaseObject();
-
-		void incrRef();
-
-		void decrRef();
-
-		int getRef() const;
-
-	private:
-		int m_ref;
-	};
-
-	/**********************************************************************/
-
-	class Profile : public BaseObject
+	class Profile
 	{
 		friend class ScopedProfile;
 		friend class Profiler;
@@ -194,7 +175,7 @@ namespace profiny
 
 	/**********************************************************************/
 
-	class ScopedProfile : public BaseObject
+	class ScopedProfile
 	{
 	public:
 		ScopedProfile(const std::string& name);
@@ -207,7 +188,7 @@ namespace profiny
 
 	/**********************************************************************/
 
-	class Profiler : public BaseObject
+	class Profiler
 	{
 		friend class Profile;
 		friend class ScopedProfile;
@@ -299,32 +280,6 @@ namespace profiny
 
 		return time;
 	};
-
-	/**********************************************************************/
-
-	inline BaseObject::BaseObject() :
-			m_ref(0)
-	{
-	}
-
-	inline BaseObject::~BaseObject()
-	{
-	}
-
-	inline void BaseObject::incrRef()
-	{
-		++m_ref;
-	}
-
-	inline void BaseObject::decrRef()
-	{
-		--m_ref;
-	}
-
-	inline int BaseObject::getRef() const
-	{
-		return m_ref;
-	}
 
 	/**********************************************************************/
 
@@ -564,27 +519,5 @@ namespace profiny
 #endif
 
 } // namespace profiny
-
-/**********************************************************************/
-
-inline void intrusive_ptr_add_ref(profiny::BaseObject* p)
-{
-    if (p != NULL)
-    { // pointer is not NULL
-        p->incrRef();
-    }
-}
-
-inline void intrusive_ptr_release(profiny::BaseObject* p)
-{
-    if (p != NULL)
-    { // pointer is not NULL
-        p->decrRef();
-        if (p->getRef() <= 0)
-        { // reference count is zero or less
-            delete p;
-        }
-    }
-}
 
 #endif /* PROFINY_H_ */
