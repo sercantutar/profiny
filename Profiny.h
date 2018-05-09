@@ -469,7 +469,7 @@ namespace profiny
 		std::ostringstream oss;
 		for (int i=0; i<depth; ++i)
 		{
-			oss << "\t";
+			oss << "  ";
 		}
 #endif
 
