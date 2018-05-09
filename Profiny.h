@@ -17,11 +17,12 @@
  *     - define both, it will give an error
  *
  *   Later, if you chose PROFINY_CALL_GRAPH_PROFILER, you may want to determine
- *   whether recursive calls will be omitted or not (omitted by default) by calling:
+ *   whether recursive calls will be omitted or not (omitted by default) by calling
+ *   macro:
  *
- *     Profiler::setOmitRecursiveCalls(bool)
+ *     SET_OMIT_RECURSIVE_CALLS(bool)
  *
- *   By default (if the profiling is not off), if your program exits normally, Profinity
+ *   By default (if the profiling is not off), if your program exits normally, Profiny
  *   will print results in "profinity.out" file. Also, the user can force printing results
  *   at any time by calling:
  *
@@ -91,6 +92,17 @@
 
 #endif
 
+#if defined(PROFINY_CALL_GRAPH_PROFILER)
+
+#	define SET_OMIT_RECURSIVE_CALLS(OPT) \
+		profiny::Profiler::setOmitRecursiveCalls(OPT);
+
+#else
+
+#	define SET_OMIT_RECURSIVE_CALLS(OPT)
+
+#endif
+
 
 #define NANOSEC_TO_SEC(X) ((X) / 1000000000.0)
 
@@ -124,26 +136,7 @@ namespace profiny
 
 	/**********************************************************************/
 
-	class BaseObject
-	{
-	public:
-		BaseObject();
-
-		virtual ~BaseObject();
-
-		void incrRef();
-
-		void decrRef();
-
-		int getRef() const;
-
-	private:
-		int m_ref;
-	};
-
-	/**********************************************************************/
-
-	class Profile : public BaseObject
+	class Profile
 	{
 		friend class ScopedProfile;
 		friend class Profiler;
@@ -182,7 +175,7 @@ namespace profiny
 
 	/**********************************************************************/
 
-	class ScopedProfile : public BaseObject
+	class ScopedProfile
 	{
 	public:
 		ScopedProfile(const std::string& name);
@@ -195,7 +188,7 @@ namespace profiny
 
 	/**********************************************************************/
 
-	class Profiler : public BaseObject
+	class Profiler
 	{
 		friend class Profile;
 		friend class ScopedProfile;
@@ -234,8 +227,6 @@ namespace profiny
 
 		std::map<std::string, Profile*> m_profiles;
 
-		static Profiler* m_instance;
-
 #ifdef PROFINY_CALL_GRAPH_PROFILER
 		std::vector<Profile*> m_profileStack;
 
@@ -245,7 +236,7 @@ namespace profiny
 
 	/**********************************************************************/
 
-	Timer::Timer()
+	inline Timer::Timer()
 		: m_startTime(0.0f), m_stopTime(0.0f), m_running(false)
 	{
 #ifdef _WIN32
@@ -255,19 +246,19 @@ namespace profiny
 #endif
 	}
 
-	void Timer::start()
+	inline void Timer::start()
 	{
 		m_running = true;
 		m_startTime = getTime();
 	}
 
-	void Timer::stop()
+	inline void Timer::stop()
 	{
 		m_running = false;
 		m_stopTime = getTime() - m_startTime;
 	}
 
-	double Timer::getElapsedTime()
+	inline double Timer::getElapsedTime()
 	{
 		if (m_running)
 			return getTime() - m_startTime;
@@ -275,46 +266,20 @@ namespace profiny
 		return m_stopTime;
 	}
 
-	double Timer::getTime()
+	inline double Timer::getTime()
 	{
 #ifdef _WIN32
 		LARGE_INTEGER count;
 		QueryPerformanceCounter(&count);
 		double time = count.QuadPart * m_reciprocalFrequency;
 #else
-		struct timeval interval;
+		struct timespec interval;
 		clock_gettime(CLOCK_MONOTONIC, &interval);
-		double time = interval.tv_sec + interval.tv_usec * 0.000001f;
+		double time = interval.tv_sec + interval.tv_nsec * 1e-9;
 #endif
 
 		return time;
 	};
-
-	/**********************************************************************/
-
-	inline BaseObject::BaseObject() :
-			m_ref(0)
-	{
-	}
-
-	inline BaseObject::~BaseObject()
-	{
-	}
-
-	inline void BaseObject::incrRef()
-	{
-		++m_ref;
-	}
-
-	inline void BaseObject::decrRef()
-	{
-		--m_ref;
-	}
-
-	inline int BaseObject::getRef() const
-	{
-		return m_ref;
-	}
 
 	/**********************************************************************/
 
@@ -386,7 +351,7 @@ namespace profiny
 
 	/**********************************************************************/
 
-	inline ScopedProfile::ScopedProfile(const std::string& name) : m_profile(NULL)
+	inline ScopedProfile::ScopedProfile(const std::string& name) : m_profile(nullptr)
 	{
 		std::string n(name);
 
@@ -405,12 +370,11 @@ namespace profiny
 #endif
 
 		m_profile = Profiler::getInstance()->getProfile(n);
-		if (m_profile != NULL)
+		if (m_profile != nullptr)
 		{
 			if (!m_profile->start())
 			{ // cannot start profiler (probably a recursive call for flat profiler)
-				delete m_profile;
-				m_profile = NULL;
+				m_profile = nullptr;
 			}
 		}
 		else
@@ -421,15 +385,13 @@ namespace profiny
 
 	inline ScopedProfile::~ScopedProfile()
 	{
-		if (m_profile != NULL)
+		if (m_profile != nullptr)
 		{
 			m_profile->stop();
 		}
 	}
 
 	/**********************************************************************/
-
-	Profiler* Profiler::m_instance = NULL;
 
 	inline Profiler::Profiler()
 #ifdef PROFINY_CALL_GRAPH_PROFILER
@@ -440,26 +402,23 @@ namespace profiny
 
 	inline Profiler::~Profiler()
 	{
+		printStats();
 	}
 
 	inline Profiler* Profiler::getInstance()
 	{
-		if (m_instance == NULL)
-		{
-			m_instance = new Profiler;
-			atexit(printStats);
-		}
-		return m_instance;
+		static Profiler profiler;
+		return &profiler;
 	}
 
 	inline Profile* Profiler::getProfile(const std::string& name)
 	{
 #ifdef PROFINY_CALL_GRAPH_PROFILER
-		std::map<std::string, Profile*>& profiles = getCurrentProfilesRoot();
+		auto& profiles = getCurrentProfilesRoot();
 #else
-		std::map<std::string, Profile*>& profiles = m_profiles;
+		auto& profiles = m_profiles;
 #endif
-		std::map<std::string, Profile*>::iterator it = profiles.find(name);
+		auto it = profiles.find(name);
 		if (it != profiles.end())
 		{
 			return it->second;
@@ -510,7 +469,7 @@ namespace profiny
 		std::ostringstream oss;
 		for (int i=0; i<depth; ++i)
 		{
-			oss << "\t";
+			oss << "  ";
 		}
 #endif
 
@@ -532,9 +491,6 @@ namespace profiny
 	inline void Profiler::printStats()
 	{
 		printStats("profiny.out");
-
-		delete m_instance;
-		m_instance = NULL;
 	}
 
 	inline void Profiler::printStats(const std::string& filename)
@@ -563,27 +519,5 @@ namespace profiny
 #endif
 
 } // namespace profiny
-
-/**********************************************************************/
-
-inline void intrusive_ptr_add_ref(profiny::BaseObject* p)
-{
-    if (p != NULL)
-    { // pointer is not NULL
-        p->incrRef();
-    }
-}
-
-inline void intrusive_ptr_release(profiny::BaseObject* p)
-{
-    if (p != NULL)
-    { // pointer is not NULL
-        p->decrRef();
-        if (p->getRef() <= 0)
-        { // reference count is zero or less
-            delete p;
-        }
-    }
-}
 
 #endif /* PROFINY_H_ */

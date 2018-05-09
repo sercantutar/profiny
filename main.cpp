@@ -1,8 +1,8 @@
-#define PROFINY_CALL_GRAPH_PROFILER
-//#define PROFINY_FLAT_PROFILER
-
 #include "Profiny.h"
 
+/*
+ * f() is a normal function
+ */
 int f(int n)
 {
 	PROFINY_SCOPE
@@ -14,6 +14,10 @@ int f(int n)
 	return result;
 }
 
+/*
+ * g() is a recursive function. In FLAT mode, g(9) will be counted as one call
+ * even though it calls itself recursively for multiple times.
+ */
 int g(int n)
 {
 	PROFINY_SCOPE
@@ -22,6 +26,10 @@ int g(int n)
 	return g(n-1) * n;
 }
 
+/*
+ * h1() and h2() calls each other to form recursive calls. In FLAT mode, the
+ * call to h1(9) will yield call count 1 to h1() and h2().
+ */
 int h2(int n);
 
 int h1(int n)
@@ -43,9 +51,14 @@ int h2(int n)
 int main()
 {
 	PROFINY_SCOPE
-	profiny::Profiler::setOmitRecursiveCalls(false);
+	SET_OMIT_RECURSIVE_CALLS(false)
+
+	// call f() two time. The call counting should be 2
 	f(1000000000);
-	g(9);
-	h1(9);
+	f(100);
+
+	g(5);
+	h1(5);
+
 	return 0;
 }
