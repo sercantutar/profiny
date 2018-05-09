@@ -40,7 +40,7 @@ int h2(int n)
 int main()
 {
 	PROFINY_SCOPE
-	profiny::Profiler::setOmitRecursiveCalls(false);
+	SET_OMIT_RECURSIVE_CALLS(false)
 	f(1000000000);
 	g(9);
 	h1(9);

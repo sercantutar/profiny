@@ -91,6 +91,17 @@
 
 #endif
 
+#if defined(PROFINY_CALL_GRAPH_PROFILER)
+
+#	define SET_OMIT_RECURSIVE_CALLS(OPT) \
+		profiny::Profiler::setOmitRecursiveCalls(OPT);
+
+#else
+
+#	define SET_OMIT_RECURSIVE_CALLS(OPT)
+
+#endif
+
 
 #define NANOSEC_TO_SEC(X) ((X) / 1000000000.0)
 
