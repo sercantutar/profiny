@@ -52,7 +52,11 @@ int main()
 {
 	PROFINY_SCOPE
 	SET_OMIT_RECURSIVE_CALLS(false)
+
+	// call f() two time. The call counting should be 2
 	f(1000000000);
+	f(100);
+
 	g(9);
 	h1(9);
 	return 0;

@@ -90,7 +90,7 @@ results at any time by calling:
 If flat profiling is requested, the results of the above example will be similar to
 the following:
 
-	f:8  T(s):2.51544  #:1  A(ms):2515.44
+	f:8  T(s):2.54245  #:2  A(ms):1271.22
 	g:23  T(s):1.032e-05  #:1  A(ms):0.01032
 	h1:37  T(s):6.666e-06  #:1  A(ms):0.006666
 	h2:45  T(s):4.891e-06  #:1  A(ms):0.004891
@@ -102,8 +102,8 @@ column shows the average execution time.
 
 If call-graph profiling is requested, the result will be similar to the following:
 
-main:53  T(s):2.47692  #:1  A(ms):2476.92
-	f:8  T(s):2.47683  #:1  A(ms):2476.83
+main:53  T(s):2.50836  #:1  A(ms):2508.36
+	f:8  T(s):2.50827  #:2  A(ms):1254.14
 	g:23  T(s):2.7195e-05  #:1  A(ms):0.027195
 		RECURSIVE@g:23  T(s):1.731e-05  #:1  A(ms):0.01731
 			RECURSIVE@g:23  T(s):1.5474e-05  #:1  A(ms):0.015474
