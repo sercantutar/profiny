@@ -138,7 +138,8 @@ If we have a unique `m_name` member in the class, we can simply write:
   ```c++
   PROFINY_SCOPE_WITH_ID(m_name)
   ```
-to the beginning of each function, and profile methods of the instances
+
+  to the beginning of each function, and profile methods of the instances
 (not the class' method). The name of each profile will be:
 
   &lt;func>:&lt;line>:&lt;ID>
