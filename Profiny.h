@@ -282,9 +282,9 @@ namespace profiny
 		QueryPerformanceCounter(&count);
 		double time = count.QuadPart * m_reciprocalFrequency;
 #else
-		struct timeval interval;
+		struct timespec interval;
 		clock_gettime(CLOCK_MONOTONIC, &interval);
-		double time = interval.tv_sec + interval.tv_usec * 0.000001f;
+		double time = interval.tv_sec + interval.tv_nsec * 1e-9;
 #endif
 
 		return time;
