@@ -17,9 +17,10 @@
  *     - define both, it will give an error
  *
  *   Later, if you chose PROFINY_CALL_GRAPH_PROFILER, you may want to determine
- *   whether recursive calls will be omitted or not (omitted by default) by calling:
+ *   whether recursive calls will be omitted or not (omitted by default) by calling
+ *   macro:
  *
- *     Profiler::setOmitRecursiveCalls(bool)
+ *     SET_OMIT_RECURSIVE_CALLS(bool)
  *
  *   By default (if the profiling is not off), if your program exits normally, Profinity
  *   will print results in "profinity.out" file. Also, the user can force printing results

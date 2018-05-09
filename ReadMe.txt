@@ -143,9 +143,9 @@ also possible to use these macros:
 			<NAME>:<ID>
 
 Later, if you chose PROFINY_CALL_GRAPH_PROFILER, you may want to determine whether
-recursive calls will be omitted or not (omitted by default) by calling:
+recursive calls will be omitted or not (omitted by default) by calling macro:
 
-	profiny::Profiler::setOmitRecursiveCalls(bool)
+	SET_OMIT_RECURSIVE_CALLS(bool)
 
 If call-graph profiling requested and recursive calls are not omitted the results will be
 as follows (including recursive calls):
