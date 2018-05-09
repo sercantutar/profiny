@@ -1,5 +1,8 @@
 #include "Profiny.h"
 
+/*
+ * f() is a normal function
+ */
 int f(int n)
 {
 	PROFINY_SCOPE
@@ -11,6 +14,10 @@ int f(int n)
 	return result;
 }
 
+/*
+ * g() is a recursive function. In FLAT mode, g(9) will be counted as one call
+ * even though it calls itself recursively for multiple times.
+ */
 int g(int n)
 {
 	PROFINY_SCOPE
@@ -19,6 +26,10 @@ int g(int n)
 	return g(n-1) * n;
 }
 
+/*
+ * h1() and h2() calls each other to form recursive calls. In FLAT mode, the
+ * call to h1(9) will yield call count 1 to h1() and h2().
+ */
 int h2(int n);
 
 int h1(int n)

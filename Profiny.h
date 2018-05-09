@@ -421,7 +421,6 @@ namespace profiny
 		{
 			if (!m_profile->start())
 			{ // cannot start profiler (probably a recursive call for flat profiler)
-				delete m_profile;
 				m_profile = NULL;
 			}
 		}
