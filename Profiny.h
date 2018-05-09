@@ -22,7 +22,7 @@
  *
  *     SET_OMIT_RECURSIVE_CALLS(bool)
  *
- *   By default (if the profiling is not off), if your program exits normally, Profinity
+ *   By default (if the profiling is not off), if your program exits normally, Profiny
  *   will print results in "profinity.out" file. Also, the user can force printing results
  *   at any time by calling:
  *
