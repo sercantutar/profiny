@@ -257,7 +257,7 @@ namespace profiny
 
 	/**********************************************************************/
 
-	Timer::Timer()
+	inline Timer::Timer()
 		: m_startTime(0.0f), m_stopTime(0.0f), m_running(false)
 	{
 #ifdef _WIN32
@@ -267,19 +267,19 @@ namespace profiny
 #endif
 	}
 
-	void Timer::start()
+	inline void Timer::start()
 	{
 		m_running = true;
 		m_startTime = getTime();
 	}
 
-	void Timer::stop()
+	inline void Timer::stop()
 	{
 		m_running = false;
 		m_stopTime = getTime() - m_startTime;
 	}
 
-	double Timer::getElapsedTime()
+	inline double Timer::getElapsedTime()
 	{
 		if (m_running)
 			return getTime() - m_startTime;
@@ -287,7 +287,7 @@ namespace profiny
 		return m_stopTime;
 	}
 
-	double Timer::getTime()
+	inline double Timer::getTime()
 	{
 #ifdef _WIN32
 		LARGE_INTEGER count;
